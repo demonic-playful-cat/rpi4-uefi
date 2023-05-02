@@ -9,7 +9,7 @@ on:
       - 'master'
 
 env:
-  EDK2_COMMIT: d6b42ed7ed1b0c4584097f0d76798cff74c96379
+  EDK2_COMMIT: f80f052277c88a67c55e107b550f504eeea947d3
   EDK2-NON-OSI_COMMIT: 41876073afb7c7309018223baa1a6f8108bf23f0
   EDK2-PLATFORMS_COMMIT: 35a84b1838baacf0d470e76fb68a6ade30413450
   PROJECT_URL: https://github.com/demonic-playful-cat/rpi4-uefi
@@ -77,7 +77,7 @@ jobs:
         source edk2/edksetup.sh
         #for BUILD_TYPE in DEBUG RELEASE; do
         make -C edk2/BaseTools
-        build -a AARCH64 -t GCC5 -b RELEASE -p edk2-platforms/Platform/RaspberryPi/RPi4/RPi4.dsc --pcd gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVendor=L"${{ env.PROJECT_URL }}" --pcd gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVersionString=L"meow-uefi version ${{steps.set_version.outputs.version}}" ${BUILD_FLAGS} ${DEFAULT_KEYS}
+        GCC5_AARCH64_PREFIX=aarch64-linux-gnu- build -a AARCH64 -t GCC5 -b RELEASE -p edk2-platforms/Platform/RaspberryPi/RPi4/RPi4.dsc --pcd gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVendor=L"${{ env.PROJECT_URL }}" --pcd gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVersionString=L"meow-uefi version ${{steps.set_version.outputs.version}}" ${BUILD_FLAGS} ${DEFAULT_KEYS}
         #done
         cp Build/RPi4/RELEASE_GCC5/FV/RPI_EFI.fd .
 
