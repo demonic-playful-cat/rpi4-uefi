@@ -9,16 +9,19 @@ on:
       - '*'
 
 env:
-  PROJECT_URL: https://github.com/pftf/RPi4
-  RPI_FIRMWARE_URL: https://github.com/raspberrypi/firmware/
+  EDK2_COMMIT: d6b42ed7ed1b0c4584097f0d76798cff74c96379
+  EDK2-NON-OSI_COMMIT: 41876073afb7c7309018223baa1a6f8108bf23f0
+  EDK2-PLATFORMS_COMMIT: 35a84b1838baacf0d470e76fb68a6ade30413450
+  PROJECT_URL: https://github.com/demonic-playful-cat/rpi4-uefi
+  RPI_FIRMWARE_URL: https://github.com/raspberrypi/firmware
   ARCH: AARCH64
   COMPILER: GCC5
   GCC5_AARCH64_PREFIX: aarch64-linux-gnu-
   # The following should usually be set to 'master' but, in case
   # of a regression, a specific SHA-1 can be specified.
-  START_ELF_VERSION: master
-  DTB_VERSION: master
-  DTBO_VERSION: master
+  START_ELF_VERSION: stable
+  DTB_VERSION: stable
+  DTBO_VERSION: stable
 
 jobs:
   UEFI-Build:
@@ -34,16 +37,19 @@ jobs:
         sudo apt-get update
         sudo apt-get install acpica-tools gcc-aarch64-linux-gnu
 
-    - name: Check out EDK2 repositories
+    - name: Check out repository
       uses: actions/checkout@v2
 
-    - name: Check out EDK2 submodules
-      run: git submodule update --init --recursive
+    - name: Check out EDK2 repositories
+      run: |
+        git clone https://github.com/tianocore/edk2 && cd edk2 && git reset --hard ${{ env.EDK2_COMMIT }} && cd ..
+        git clone https://github.com/tianocore/edk2-non-osi && cd edk2 && git reset --hard ${{ env.EDK2-NON-OSI_COMMIT }} && cd ..
+        git clone https://github.com/tianocore/edk2-platforms && cd edk2 && git reset --hard ${{ env.EDK2-PLATFORMS_COMMIT }} && cd ..
 
     - name: Patch EDK2 repositories
       run: |
-        patch --binary -d edk2 -p1 -i ../0001-MdeModulePkg-UefiBootManagerLib-Signal-ReadyToBoot-o.patch
-        patch --binary -d edk2-platforms -p1 -i ../0002-Check-for-Boot-Discovery-Policy-change.patch
+        patch --binary -d edk2 -p1 -i ../patches/0001-MdeModulePkg-UefiBootManagerLib-Signal-ReadyToBoot-o.patch
+        patch --binary -d edk2-platforms -p1 -i ../patches/0002-Check-for-Boot-Discovery-Policy-change.patch
 
     - name: Set up EDK2
       run: make -C edk2/BaseTools
@@ -62,8 +68,9 @@ jobs:
       run: |
         export WORKSPACE=$PWD
         export PACKAGES_PATH=$WORKSPACE/edk2:$WORKSPACE/edk2-platforms:$WORKSPACE/edk2-non-osi
-        export BUILD_FLAGS="-D SECURE_BOOT_ENABLE=TRUE -D INCLUDE_TFTP_COMMAND=TRUE -D NETWORK_ISCSI_ENABLE=TRUE -D SMC_PCI_SUPPORT=1"
-        export DEFAULT_KEYS="-D DEFAULT_KEYS=TRUE -D PK_DEFAULT_FILE=$WORKSPACE/keys/pk.cer -D KEK_DEFAULT_FILE1=$WORKSPACE/keys/ms_kek.cer -D DB_DEFAULT_FILE1=$WORKSPACE/keys/ms_db1.cer -D DB_DEFAULT_FILE2=$WORKSPACE/keys/ms_db2.cer -D DBX_DEFAULT_FILE1=$WORKSPACE/keys/arm64_dbx.bin"
+        export BUILD_FLAGS="-D SECURE_BOOT_ENABLE=FALSE -D INCLUDE_TFTP_COMMAND=TRUE -D NETWORK_ISCSI_ENABLE=TRUE -D SMC_PCI_SUPPORT=1"
+        #export DEFAULT_KEYS="-D DEFAULT_KEYS=TRUE -D PK_DEFAULT_FILE=$WORKSPACE/keys/pk.cer -D KEK_DEFAULT_FILE1=$WORKSPACE/keys/ms_kek.cer -D DB_DEFAULT_FILE1=$WORKSPACE/keys/ms_db1.cer -D DB_DEFAULT_FILE2=$WORKSPACE/keys/ms_db2.cer -D DBX_DEFAULT_FILE1=$WORKSPACE/keys/arm64_dbx.bin"
+        export DEFAULT_KEYS="-D DEFAULT_KEYS=FALSE"
         # EDK2's 'build' command doesn't play nice with spaces in environmnent variables, so we can't move the PCDs there...
         source edk2/edksetup.sh
         for BUILD_TYPE in DEBUG RELEASE; do
