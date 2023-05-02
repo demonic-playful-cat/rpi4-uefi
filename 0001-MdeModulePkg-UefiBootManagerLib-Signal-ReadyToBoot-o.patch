@@ -30,7 +30,7 @@ diff --git a/MdeModulePkg/Library/UefiBootManagerLib/BmLoadOption.c b/MdeModuleP
 index 89372b3b97b8..117f1f5b124c 100644
 --- a/MdeModulePkg/Library/UefiBootManagerLib/BmLoadOption.c
 +++ b/MdeModulePkg/Library/UefiBootManagerLib/BmLoadOption.c
-@@ -1376,6 +1376,15 @@ EfiBootManagerProcessLoadOption (
+@@ -1416,6 +1416,15 @@ EfiBootManagerProcessLoadOption (
      return EFI_SUCCESS;
    }
  
