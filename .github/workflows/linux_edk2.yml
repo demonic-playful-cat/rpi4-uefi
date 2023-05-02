@@ -51,9 +51,6 @@ jobs:
         patch --binary -d edk2 -p1 -i ../patches/0001-MdeModulePkg-UefiBootManagerLib-Signal-ReadyToBoot-o.patch
         patch --binary -d edk2-platforms -p1 -i ../patches/0002-Check-for-Boot-Discovery-Policy-change.patch
 
-    - name: Set up EDK2
-      run: make -C edk2/BaseTools
-
     - name: Set up Secure Boot default keys
       run: |
         mkdir keys
@@ -66,6 +63,8 @@ jobs:
 
     - name: Build UEFI firmware
       run: |
+        export CC=${{ env.GCC5_AARCH64_PREFIX }}gcc
+        export CC=${{ env.GCC5_AARCH64_PREFIX }}g++
         export WORKSPACE=$PWD
         export PACKAGES_PATH=$WORKSPACE/edk2:$WORKSPACE/edk2-platforms:$WORKSPACE/edk2-non-osi
         export BUILD_FLAGS="-D SECURE_BOOT_ENABLE=FALSE -D INCLUDE_TFTP_COMMAND=TRUE -D NETWORK_ISCSI_ENABLE=TRUE -D SMC_PCI_SUPPORT=1"
@@ -74,9 +73,8 @@ jobs:
         # EDK2's 'build' command doesn't play nice with spaces in environmnent variables, so we can't move the PCDs there...
         source edk2/edksetup.sh
         for BUILD_TYPE in DEBUG RELEASE; do
-          alias gcc="aarch64-linux-gnu-gcc"
-          alias cc="aarch64-linux-gnu-gcc"
-          CC=aarch64-linux-gnu-gcc CXX=aarch64-linux-gnu-g++ build -a ${{ env.ARCH }} -t ${{ env.COMPILER }} -b $BUILD_TYPE -p edk2-platforms/Platform/RaspberryPi/RPi4/RPi4.dsc --pcd gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVendor=L"${{ env.PROJECT_URL }}" --pcd gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVersionString=L"UEFI Firmware ${{steps.set_version.outputs.version}}" ${BUILD_FLAGS} ${DEFAULT_KEYS}
+          make -C edk2/BaseTools -a ${{ env.ARCH }} -t ${{ env.COMPILER }} -b $BUILD_TYPE -p edk2-platforms/Platform/RaspberryPi/RPi4/RPi4.dsc
+          build -a ${{ env.ARCH }} -t ${{ env.COMPILER }} -b $BUILD_TYPE -p edk2-platforms/Platform/RaspberryPi/RPi4/RPi4.dsc --pcd gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVendor=L"${{ env.PROJECT_URL }}" --pcd gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVersionString=L"UEFI Firmware ${{steps.set_version.outputs.version}}" ${BUILD_FLAGS} ${DEFAULT_KEYS}
         done
         cp Build/RPi4/RELEASE_${{ env.COMPILER }}/FV/RPI_EFI.fd .
 
