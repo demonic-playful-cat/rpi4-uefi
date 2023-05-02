@@ -5,8 +5,8 @@ name: UEFI firmware - EDK2 build
 
 on:  
   push:
-    tags:
-      - '*'
+    branches: 
+      - 'master'
 
 env:
   EDK2_COMMIT: d6b42ed7ed1b0c4584097f0d76798cff74c96379
