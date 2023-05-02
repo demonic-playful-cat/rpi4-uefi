@@ -42,7 +42,7 @@ jobs:
 
     - name: Check out EDK2 repositories
       run: |
-        git clone https://github.com/tianocore/edk2 && cd edk2 && git reset --hard ${{ env.EDK2_COMMIT }} && cd ..
+        git clone https://github.com/tianocore/edk2 && cd edk2 && git reset --hard ${{ env.EDK2_COMMIT }} && git submodule update --init && cd ..
         git clone https://github.com/tianocore/edk2-non-osi && cd edk2-non-osi && git reset --hard ${{ env.EDK2-NON-OSI_COMMIT }} && cd ..
         git clone https://github.com/tianocore/edk2-platforms && cd edk2-platforms && git reset --hard ${{ env.EDK2-PLATFORMS_COMMIT }} && cd ..
 
